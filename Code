@@ -1,0 +1,313 @@
+install.packages("WDI")
+library(WDI)
+library(plm)
+library(dplyr)
+library(stringr)
+flpr= WDI(country=c("all"),indicator=c("SL.TLF.CACT.FE.ZS","SE.SEC.ENRL.FE.ZS","SP.DYN.TFRT.IN","VC.IHR.PSRC.FE.P5","SH.STA.MMRT","NV.AGR.TOTL.ZS","NY.GDP.PCAP.KD"), start=2000, end=2020)
+## Defining Variables
+# SL.TLF.CACT.FE.ZS = Female Labor Force Participation Rate 15+ ILO Estimates
+# SE.SEC.ENRL.FE.ZS = Secondary education % female
+# SP.DYN.TFRT.IN = Births per woman - Total Fertility Rates
+# VC.IHR.PSRC.FE.P5 = Intentional Homicides - women killed per 100k female population 
+# SH.STA.MMRT = Maternal Mortality Ratio - number of maternal deaths per 100k child births
+# NV.AGR.TOTL.ZS = % of country's GDP coming from Agriculture and fisheries
+# NY.GDP.PCAP.KD = Per Capita Income
+#removing the ISO codes not needed or grouped countries
+flprdata=flpr %>% filter(!str_detect(iso3c, "\\d"))
+flprdata=na.omit(flprdata)
+# share of agriculture, female schooling and our response variable LFPR Female - is in % - we must convert them into values between 0 to 1 for betaregression
+attach(flprdata)
+flprdata = transform(flprdata,"FLPRC" = SL.TLF.CACT.FE.ZS/100)
+write.csv2(flprdata, "flprdata.csv", row.names=FALSE)
+data1 = read.csv("flprdata.csv", sep=";", dec = ",", header = TRUE)
+#ADDING dummies to group country wise information
+DUMMY_DATA = rep(0, times=nrow(data1))
+#Adding dummy for low development indicator countries
+#LDI countries
+
+DUMMY_DATA[data1$iso2c=="AO"]=1
+DUMMY_DATA[data1$iso2c=="BD"]=1
+DUMMY_DATA[data1$iso2c=="BJ"]=1
+DUMMY_DATA[data1$iso2c=="BF"]=1
+DUMMY_DATA[data1$iso2c=="BI"]=1
+DUMMY_DATA[data1$iso2c=="KH"]=1
+DUMMY_DATA[data1$iso2c=="CF"]=1
+DUMMY_DATA[data1$iso2c=="TD"]=1
+DUMMY_DATA[data1$iso2c=="KM"]=1
+DUMMY_DATA[data1$iso2c=="CD"]=1
+DUMMY_DATA[data1$iso2c=="DJ"]=1
+DUMMY_DATA[data1$iso2c=="ET"]=1
+DUMMY_DATA[data1$iso2c=="GM"]=1
+DUMMY_DATA[data1$iso2c=="GN"]=1
+DUMMY_DATA[data1$iso2c=="GW"]=1
+DUMMY_DATA[data1$iso2c=="HT"]=1
+DUMMY_DATA[data1$iso2c=="KI"]=1
+DUMMY_DATA[data1$iso2c=="LA"]=1
+DUMMY_DATA[data1$iso2c=="LS"]=1
+DUMMY_DATA[data1$iso2c=="LR"]=1
+DUMMY_DATA[data1$iso2c=="MG"]=1
+DUMMY_DATA[data1$iso2c=="MW"]=1
+DUMMY_DATA[data1$iso2c=="BT"]=1
+DUMMY_DATA[data1$iso2c=="MZ"]=1
+DUMMY_DATA[data1$iso2c=="NP"]=1
+DUMMY_DATA[data1$iso2c=="MM"]=1
+DUMMY_DATA[data1$iso2c=="NE"]=1
+DUMMY_DATA[data1$iso2c=="RW"]=1
+DUMMY_DATA[data1$iso2c=="ST"]=1
+DUMMY_DATA[data1$iso2c=="SN"]=1
+DUMMY_DATA[data1$iso2c=="SL"]=1
+DUMMY_DATA[data1$iso2c=="SB"]=1
+DUMMY_DATA[data1$iso2c=="SO"]=1
+DUMMY_DATA[data1$iso2c=="SS"]=1
+DUMMY_DATA[data1$iso2c=="SD"]=1
+DUMMY_DATA[data1$iso2c=="TL"]=1
+DUMMY_DATA[data1$iso2c=="TG"]=1
+DUMMY_DATA[data1$iso2c=="TV"]=1
+DUMMY_DATA[data1$iso2c=="UGA"]=1
+DUMMY_DATA[data1$iso2c=="TZ"]=1
+DUMMY_DATA[data1$iso2c=="YE"]=1
+DUMMY_DATA[data1$iso2c=="ZM"]=1
+DUMMY_DATA[data1$iso2c=="UG"]=1
+data1$LDI = DUMMY_DATA
+
+#Adding High Development Indicator countries #HDI
+
+DUMMY2=rep(0,times=nrow(data1))
+DUMMY2[data1$iso2c=="AD"]=1
+DUMMY2[data1$iso2c=="AG"]=1
+DUMMY2[data1$iso2c=="AW"]=1
+DUMMY2[data1$iso2c=="AU"]=1
+DUMMY2[data1$iso2c=="AT"]=1
+DUMMY2[data1$iso2c=="BS"]=1
+DUMMY2[data1$iso2c=="BH"]=1
+DUMMY2[data1$iso2c=="BB"]=1
+DUMMY2[data1$iso2c=="BE"]=1
+DUMMY2[data1$iso2c=="BM"]=1
+DUMMY2[data1$iso2c=="VG"]=1
+DUMMY2[data1$iso2c=="BN"]=1
+DUMMY2[data1$iso2c=="CA"]=1
+DUMMY2[data1$iso2c=="KY"]=1
+DUMMY2[data1$iso2c=="CL"]=1
+DUMMY2[data1$iso2c=="HR"]=1
+DUMMY2[data1$iso2c=="CW"]=1
+DUMMY2[data1$iso2c=="CY"]=1
+DUMMY2[data1$iso2c=="CZ"]=1
+DUMMY2[data1$iso2c=="DK"]=1
+DUMMY2[data1$iso2c=="EE"]=1
+DUMMY2[data1$iso2c=="FO"]=1
+DUMMY2[data1$iso2c=="FI"]=1
+DUMMY2[data1$iso2c=="FR"]=1
+DUMMY2[data1$iso2c=="DE"]=1
+DUMMY2[data1$iso2c=="GI"]=1
+DUMMY2[data1$iso2c=="GR"]=1
+DUMMY2[data1$iso2c=="GL"]=1
+DUMMY2[data1$iso2c=="GU"]=1
+DUMMY2[data1$iso2c=="HK"]=1
+DUMMY2[data1$iso2c=="HU"]=1
+DUMMY2[data1$iso2c=="IS"]=1
+DUMMY2[data1$iso2c=="IE"]=1
+DUMMY2[data1$iso2c=="IM"]=1
+DUMMY2[data1$iso2c=="IL"]=1
+DUMMY2[data1$iso2c=="T"]=1
+DUMMY2[data1$iso2c=="IT"]=1
+DUMMY2[data1$iso2c=="JP"]=1
+DUMMY2[data1$iso2c=="KW"]=1
+DUMMY2[data1$iso2c=="LV"]=1
+DUMMY2[data1$iso2c=="LI"]=1
+DUMMY2[data1$iso2c=="LT"]=1
+DUMMY2[data1$iso2c=="LU"]=1
+DUMMY2[data1$iso2c=="MO"]=1
+DUMMY2[data1$iso2c=="MC"]=1
+DUMMY2[data1$iso2c=="MT"]=1
+DUMMY2[data1$iso2c=="NR"]=1
+DUMMY2[data1$iso2c=="NL"]=1
+DUMMY2[data1$iso2c=="NC"]=1
+DUMMY2[data1$iso2c=="NZ"]=1
+DUMMY2[data1$iso2c=="MP"]=1
+DUMMY2[data1$iso2c=="NO"]=1
+DUMMY2[data1$iso2c=="OM"]=1
+DUMMY2[data1$iso2c=="PA"]=1
+DUMMY2[data1$iso2c=="PL"]=1
+DUMMY2[data1$iso2c=="PT"]=1
+DUMMY2[data1$iso2c=="PR"]=1
+DUMMY2[data1$iso2c=="QA"]=1
+DUMMY2[data1$iso2c=="RO"]=1
+DUMMY2[data1$iso2c=="KN"]=1
+DUMMY2[data1$iso2c=="MF"]=1
+DUMMY2[data1$iso2c=="SM"]=1
+DUMMY2[data1$iso2c=="SA"]=1
+DUMMY2[data1$iso2c=="SC"]=1
+DUMMY2[data1$iso2c=="SG"]=1
+DUMMY2[data1$iso2c=="SX"]=1
+DUMMY2[data1$iso2c=="SK"]=1
+DUMMY2[data1$iso2c=="SI"]=1
+DUMMY2[data1$iso2c=="KR"]=1
+DUMMY2[data1$iso2c=="ES"]=1
+DUMMY2[data1$iso2c=="SE"]=1
+DUMMY2[data1$iso2c=="TW"]=1
+DUMMY2[data1$iso2c=="TT"]=1
+DUMMY2[data1$iso2c=="TC"]=1
+DUMMY2[data1$iso2c=="AE"]=1
+DUMMY2[data1$iso2c=="GB"]=1
+DUMMY2[data1$iso2c=="US"]=1
+DUMMY2[data1$iso2c=="UY"]=1
+data1$high_income = DUMMY2
+
+
+## adding a south asia Dummy
+
+DUMMY3=rep(0,times=nrow(data1))
+DUMMY3[data1$iso2c=="AF"]=1
+DUMMY3[data1$iso2c=="BD"]=1
+DUMMY3[data1$iso2c=="BT"]=1
+DUMMY3[data1$iso2c=="IN"]=1
+DUMMY3[data1$iso2c=="LK"]=1
+DUMMY3[data1$iso2c=="MV"]=1
+DUMMY3[data1$iso2c=="NP"]=1
+DUMMY3[data1$iso2c=="PK"]=1
+data1$south_asia = DUMMY3
+
+## adding a MENA region Dummy
+
+DUMMY4 = rep(0, times= nrow(data1))
+DUMMY4[data1$iso2c=="AE"]=1
+DUMMY4[data1$iso2c=="BH"]=1
+DUMMY4[data1$iso2c=="DJ"]=1
+DUMMY4[data1$iso2c=="DZ"]=1
+DUMMY4[data1$iso2c=="EG"]=1
+DUMMY4[data1$iso2c=="IR"]=1
+DUMMY4[data1$iso2c=="IQ"]=1
+DUMMY4[data1$iso2c=="IL"]=1
+DUMMY4[data1$iso2c=="JO"]=1
+DUMMY4[data1$iso2c=="KW"]=1
+DUMMY4[data1$iso2c=="LB"]=1
+DUMMY4[data1$iso2c=="LY"]=1
+DUMMY4[data1$iso2c=="MA"]=1
+DUMMY4[data1$iso2c=="MT"]=1
+DUMMY4[data1$iso2c=="OM"]=1
+DUMMY4[data1$iso2c=="AQ"]=1
+DUMMY4[data1$iso2c=="QA"]=1
+DUMMY4[data1$iso2c=="SA"]=1
+DUMMY4[data1$iso2c=="SY"]=1
+DUMMY4[data1$iso2c=="TN"]=1
+DUMMY4[data1$iso2c=="YE"]=1
+data1$mena = DUMMY4
+
+#now we incorporate all the countrywise effects in our model and check whether they make sense. Fixed Effects do not factor in the dummies, random effects do. 
+
+## Running the model (with fixed effects)
+model.fe = plm(FLPRC~SE.SEC.ENRL.FE.ZS+log(SP.DYN.TFRT.IN)+VC.IHR.PSRC.FE.P5+SH.STA.MMRT+log(NV.AGR.TOTL.ZS)+log(NY.GDP.PCAP.KD), data=data1, model="within")
+## Running the model with the random effects
+summary(model.fe)
+model.re = plm(FLPRC~SE.SEC.ENRL.FE.ZS+log(SP.DYN.TFRT.IN)+VC.IHR.PSRC.FE.P5+SH.STA.MMRT+log(NV.AGR.TOTL.ZS)+log(NY.GDP.PCAP.KD)+LDI+south_asia+high_income+mena, data=data1, model="random", random.method = "walhus")
+summary(model.re)
+
+stargazer(model.fe, model.re, type = "html")
+## Separating the random effects to check region wise impacts
+model.re.LDI = plm(FLPRC~SE.SEC.ENRL.FE.ZS+log(SP.DYN.TFRT.IN)+VC.IHR.PSRC.FE.P5+SH.STA.MMRT+log(NV.AGR.TOTL.ZS)+log(NY.GDP.PCAP.KD)+LDI, data=data1, model="random", random.method = "walhus")
+model.re.HDI = model.re = plm(FLPRC~SE.SEC.ENRL.FE.ZS+log(SP.DYN.TFRT.IN)+VC.IHR.PSRC.FE.P5+SH.STA.MMRT+log(NV.AGR.TOTL.ZS)+log(NY.GDP.PCAP.KD)+high_income, data=data1, model="random", random.method = "walhus")
+model.re.sa= plm(FLPRC~SE.SEC.ENRL.FE.ZS+log(SP.DYN.TFRT.IN)+VC.IHR.PSRC.FE.P5+SH.STA.MMRT+log(NV.AGR.TOTL.ZS)+log(NY.GDP.PCAP.KD)+south_asia, data=data1, model="random", random.method = "walhus")
+model.re.mena = plm(FLPRC~SE.SEC.ENRL.FE.ZS+log(SP.DYN.TFRT.IN)+VC.IHR.PSRC.FE.P5+SH.STA.MMRT+log(NV.AGR.TOTL.ZS)+log(NY.GDP.PCAP.KD)+mena, data=data1, model="random", random.method = "walhus")
+summary(model.re.LDI)
+
+#running the hausman test
+phtest(model.fe, model.re)
+library(stargazer)
+#Displaying results on stargazer
+stargazer(model.re.LDI, model.re.HDI, model.re.sa, model.re.mena,type = "html")
+
+summary(model.fe)
+
+model.fe.LDI = plm(FLPRC~SE.SEC.ENRL.FE.ZS+log(SP.DYN.TFRT.IN)+VC.IHR.PSRC.FE.P5+SH.STA.MMRT+log(NV.AGR.TOTL.ZS)+log(NY.GDP.PCAP.KD), data=data1, model="within")
+model.fe.HDI = model.re = plm(FLPRC~SE.SEC.ENRL.FE.ZS+log(SP.DYN.TFRT.IN)+VC.IHR.PSRC.FE.P5+SH.STA.MMRT+log(NV.AGR.TOTL.ZS)+log(NY.GDP.PCAP.KD), data=data1, model="within")
+model.fe.sa = model.re.LDI = plm(FLPRC~SE.SEC.ENRL.FE.ZS+log(SP.DYN.TFRT.IN)+VC.IHR.PSRC.FE.P5+SH.STA.MMRT+log(NV.AGR.TOTL.ZS)+log(NY.GDP.PCAP.KD), data=data1, model="within")
+model.fe.mena = plm(FLPRC~SE.SEC.ENRL.FE.ZS+log(SP.DYN.TFRT.IN)+VC.IHR.PSRC.FE.P5+SH.STA.MMRT+log(NV.AGR.TOTL.ZS)+log(NY.GDP.PCAP.KD), data=data1, model="within")
+stargazer(model.fe.LDI, model.fe.HDI, model.fe.sa, model.fe.mena,type = "html")
+View(data1)
+library(ggplot2)
+data("data1")
+data(data1)
+load(data1)
+View(data1)
+ggplot(data = data1, aes(x = SE.SEC.ENRL.FE.ZS, y = FLPRC))+geom_point()+facet_grid()
+
+##adding a filter to make better charts
+data_ldi = filter(data1, LDI==1)
+data_hdi = filter(data1, high_income==1)
+data_sa = filter(data1, south_asia == 1)
+data_mena = filter(data1, mena ==1)
+
+ggplot(data = data_ldi, aes(x = SE.SEC.ENRL.FE.ZS, y = FLPRC))+geom_point()
+ggplot(data = data_hdi, aes(x = SE.SEC.ENRL.FE.ZS, y = FLPRC))+geom_point()
+ggplot(data = data_sa, aes(x = SE.SEC.ENRL.FE.ZS, y = FLPRC))+geom_point()
+ggplot(data = data_mena, aes(x = SE.SEC.ENRL.FE.ZS, y = FLPRC))+geom_point()
+library(ggplot2)
+ggplot()+
+  geom_point(data_ldi, mapping = aes(x=SE.SEC.ENRL.FE.ZS,FLPRC), 
+             fill = "red", color = "black",
+             size = 3, shape = 21)+
+  geom_point(data_hdi, mapping = aes(x=SE.SEC.ENRL.FE.ZS,FLPRC), 
+             fill = "blue", color = "black",
+             size = 3, shape = 21)+
+  geom_point(data_sa, mapping = aes(x=SE.SEC.ENRL.FE.ZS,FLPRC), 
+             fill = "yellow", color = "black",
+             size = 3, shape = 21)+
+  geom_point(data_mena, mapping = aes(x=SE.SEC.ENRL.FE.ZS,FLPRC),
+             fill = "green", color = "black",
+             size = 3, shape = 21)+
+  labs(x = "Secondary Schooling", y = "Female Labour force participation", color = "Legend")+ggtitle("Combined chart")
+par(mfrow = c(2,2)
+
+
+
+scale_color_manual(
+  name = 'Regression Model',
+  breaks = c('LDI', 'HDI', 'South_Asia', 'MENA'),
+  values = c('LDI' = 'red', 'HDI' = 'blue', 'South_Asia' = 'yellow', 'MENA' = 'green'))+
+    theme(legend.title = element_text(size = 20), legend.text = element_text(size = 14))
+
+
+library(tidyr)
+colors <- c("LDI" = "red", "HDI" = "blue", "south_asia" = "yellow", "mena" = "green")
+ggplot()+
+  geom_point(data_ldi, mapping = aes(x=SE.SEC.ENRL.FE.ZS,FLPRC), 
+             color = "LDI",
+             size = 3, shape = 21)+
+  geom_point(data_hdi, mapping = aes(x=SE.SEC.ENRL.FE.ZS,FLPRC), 
+             color = "HDI",
+             size = 3, shape = 21)+
+  geom_point(data_sa, mapping = aes(x=SE.SEC.ENRL.FE.ZS,FLPRC), 
+             color = "south_asia",
+             size = 3, shape = 21)+
+  geom_point(data_mena, mapping = aes(x=SE.SEC.ENRL.FE.ZS,FLPRC),
+             color = "mena",
+             size = 3, shape = 21)+
+  labs(x = "Secondary Schooling", y = "Female Labour force participation", color = "Legend")+scale_color_manual(values = colors)
+  +ggtitle("Combined chart")
+
+View(data_hdi)
+
+summary(model.fe)
+summary(model.re)
+stargazer(model.fe, model.re, type = "html")
+stargazer(model.fe,model.re, type = "text")
+phtest(model.fe, model.re)
+
+stargazer(model.re.LDI, model.re.HDI, model.re.sa, model.re.mena,type = "html")
+View(data_ldi)
+plot(model.re, which =1)
+qqnorm(data1$SE.SEC.ENRL.FE.ZS)
+qqline(data1$SE.SEC.ENRL.FE.ZS)
+plot(fitted(model.re), resid))
+res = resid(model.re)
+plot(fitted(model.re), res)
+ols_test_breusch_pagan
+library(lmtest)
+pwtest(FLPRC~SE.SEC.ENRL.FE.ZS+log(SP.DYN.TFRT.IN)+VC.IHR.PSRC.FE.P5+SH.STA.MMRT+log(NV.AGR.TOTL.ZS)+log(NY.GDP.PCAP.KD)+LDI+south_asia+high_income+mena, data=data1)
+plmtest(FLPRC~SE.SEC.ENRL.FE.ZS+log(SP.DYN.TFRT.IN)+VC.IHR.PSRC.FE.P5+SH.STA.MMRT+log(NV.AGR.TOTL.ZS)+log(NY.GDP.PCAP.KD)+LDI+south_asia+high_income+mena, data=data1)
+bptest(FLPRC~SE.SEC.ENRL.FE.ZS+log(SP.DYN.TFRT.IN)+VC.IHR.PSRC.FE.P5+SH.STA.MMRT+log(NV.AGR.TOTL.ZS)+log(NY.GDP.PCAP.KD)+LDI+south_asia+high_income+mena, data=data1, studentize=F)
+nr2 <- 
+  model.re %>% 
+  r.squared(model.re$residual)
+nr2 %>% 
+  pchisq(1, lower.tail = F)
